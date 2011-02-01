@@ -26,6 +26,26 @@ try:
 except ImportError:
     from StringIO import StringIO
 
+from DocumentConverter import DocumentConverter
+
+
+
+def convert(path, presentation):
+    converter = DocumentConverter()
+    pdfname = presentation.replace('.ppt', '.pdf')
+    converter.convert(presentation, pdfname)
+    pngname = os.path.join(path, presentation.replace('.pdf', 'png'))
+    os.system('convert %s %s' % (pdfname, pngname)
+                     
+
+def rm_rf(d):
+    for path in (os.path.join(d,f) for f in os.listdir(d)):
+        if os.path.isdir(path):
+            rm_rf(path)
+        else:
+            os.unlink(path)
+    os.rmdir(d)
+
 
 class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
@@ -96,6 +116,18 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         fn = re.findall(r'Content-Disposition.*name="file"; filename="(.*)"', line)
         if not fn:
             return (False, "Can't find out file name...")
+
+        #create dir for presentation
+
+        pathname, _ = fn.split('.ppt')
+
+        if os.path.exists(pathname):
+            print 'there is one'
+            rf_rf(pathname)
+
+        os.mkdir(pathname)
+        convert(pathname, fn)
+
         path = self.translate_path(self.path)
         fn = os.path.join(path, fn[0])
         while os.path.exists(fn):
