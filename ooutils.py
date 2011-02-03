@@ -19,6 +19,8 @@ OPENOFFICE_PORT = 8100
 _oopaths=(
         ('/usr/lib64/ooo-2.0/program',   '/usr/lib64/ooo-2.0/program'),
         ('/opt/openoffice.org3/program', '/opt/openoffice.org/basis3.0/program'),
+        # for windows, a bit hackish solution
+        ('C:\Program Files (x86)\OpenOffice.org 3\program', 'C:\Program Files (x86)\OpenOffice.org 3\Basis\program')
      )
 
 for p in _oopaths:
@@ -31,6 +33,9 @@ for p in _oopaths:
         if sys.path.count(OPENOFFICE_LIBPATH) == 0:
             sys.path.insert(0, OPENOFFICE_LIBPATH)
         break
+else:
+    print "No ooffice found!"
+    sys.exit(1)
 
 
 import uno
@@ -96,16 +101,17 @@ class OORunner:
         Start a headless instance of OpenOffice.
         """
         args = [OPENOFFICE_BIN,
-                '-accept=socket,host=localhost,port=%d;urp;StarOffice.ServiceManager' % self.port,
-                '-norestore',
-                '-nofirststartwizard',
-                '-nologo',
-                '-headless',
+                '--headless',
+                '--norestore',
+                '--nofirststartwizard',
+                '--nologo',
+                '--accept=socket,host=localhost,port=%d;urp;' % self.port,#StarOffice.ServiceManager' % self.port,
                 ]
         env  = {'PATH'       : '/bin:/usr/bin:%s' % OPENOFFICE_PATH,
                 'PYTHONPATH' : OPENOFFICE_LIBPATH,
                 }
 
+        print 'Start'
         try:
             pid = os.spawnve(os.P_NOWAIT, args[0], args, env)
         except Exception, e:

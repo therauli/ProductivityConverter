@@ -27,17 +27,18 @@ except ImportError:
     from StringIO import StringIO
 
 import DocumentConverter
+import ooutils
 
 
 
 def convert(path, presentation):
+    print 'converting to pdf'
     converter = DocumentConverter.DocumentConverter()
     pdfname = presentation.replace('.ppt', '.pdf')
-    try:
-        converter.convert(presentation, pdfname)
-    except DocumentConverter.DocumentConversionException, e:
-        #Something rotten in denmark
-        
+
+    converter.convert(presentation, pdfname)
+    print 'done'
+    print 'converting to pngs'
     pngname = os.path.join(path, presentation.replace('.pdf', 'png'))
     os.system('convert %s %s' % (pdfname, pngname))
                      
@@ -64,7 +65,12 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     request omits the actual contents of the file.
 
     """
-
+    def __init__(self, *args, **kwargs):
+        BaseHTTPServer.BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
+        '''Start my engine'''
+        self.runner = ooutils.OORunner()
+        self.runner.startup()
+    
     server_version = "SimpleHTTPWithUpload/" + __version__
 
     def do_GET(self):
@@ -128,7 +134,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         if os.path.exists(pathname):
             print 'there is one'
-            rf_rf(pathname)
+            rm_rf(pathname)
 
         os.mkdir(pathname)
         convert(pathname, filename)

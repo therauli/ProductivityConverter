@@ -222,6 +222,10 @@ if __name__ == "__main__":
         print "no such input file: %s" % argv[1]
         exit(1)
 
+    import ooutils
+    runner = ooutils.OORunner()
+    runner.startup()
+        
     try:
         converter = DocumentConverter()    
         converter.convert(argv[1], argv[2])
