@@ -26,16 +26,20 @@ try:
 except ImportError:
     from StringIO import StringIO
 
-from DocumentConverter import DocumentConverter
+import DocumentConverter
 
 
 
 def convert(path, presentation):
-    converter = DocumentConverter()
+    converter = DocumentConverter.DocumentConverter()
     pdfname = presentation.replace('.ppt', '.pdf')
-    converter.convert(presentation, pdfname)
+    try:
+        converter.convert(presentation, pdfname)
+    except DocumentConverter.DocumentConversionException, e:
+        #Something rotten in denmark
+        
     pngname = os.path.join(path, presentation.replace('.pdf', 'png'))
-    os.system('convert %s %s' % (pdfname, pngname)
+    os.system('convert %s %s' % (pdfname, pngname))
                      
 
 def rm_rf(d):
@@ -119,14 +123,15 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         #create dir for presentation
 
-        pathname, _ = fn.split('.ppt')
+        filename = fn[0]
+        pathname, _ = filename.split('.ppt')
 
         if os.path.exists(pathname):
             print 'there is one'
             rf_rf(pathname)
 
         os.mkdir(pathname)
-        convert(pathname, fn)
+        convert(pathname, filename)
 
         path = self.translate_path(self.path)
         fn = os.path.join(path, fn[0])
