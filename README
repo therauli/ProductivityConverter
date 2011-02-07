@@ -1,0 +1,12 @@
+= Productivity Converter =
+ - Converting your productivity since 2011
+
+A simple HTTP server that converts .ppt files to images
+
+Installation
+
+1. Install newest Open Office
+2. Install imagemagick
+3. run server.py
+4. enjoy
+

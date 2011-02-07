@@ -29,13 +29,12 @@ try:
 except ImportError:
     from StringIO import StringIO
 
-import converter
+import documentconverter
 import ooutils
 
 def convert(path, presentation):
-    print presentation, path
     print 'converting to pdf'
-    converter = converter.DocumentConverter()
+    converter = documentconverter.DocumentConverter()
     pdfname = os.path.join(path, presentation.replace('.ppt', '.pdf'))
 
     converter.convert(os.path.join(path, presentation), pdfname)
@@ -128,7 +127,13 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return (False, "Can't find out file name...")
 
         filename = fn[0]
-        pathname, _ = filename.split('.ppt')
+
+        # Just get rid of the x :P
+        if filename.endswith('.pptx'):
+            pathname, _ = filename.split('.pptx')
+            filename = filename.replace('.pptx', '.ppt')
+        else:
+            pathname, _ = filename.split('.ppt')
 
         #remove old dir with content!
         if os.path.exists(pathname):
@@ -138,7 +143,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         os.mkdir(pathname)
 
         path = self.translate_path(self.path)
-        fn = os.path.join(pathname, fn[0])
+        fn = os.path.join(pathname, filename)
 
 
         #read two lines (some header stuff perhaps?
@@ -146,7 +151,6 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         remainbytes -= len(line)
         line = self.rfile.readline()
         remainbytes -= len(line)
-
 
         try:
             out = open(fn, 'wb')
