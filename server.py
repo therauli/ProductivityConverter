@@ -29,13 +29,13 @@ try:
 except ImportError:
     from StringIO import StringIO
 
-import DocumentConverter
+import converter
 import ooutils
 
 def convert(path, presentation):
     print presentation, path
     print 'converting to pdf'
-    converter = DocumentConverter.DocumentConverter()
+    converter = converter.DocumentConverter()
     pdfname = os.path.join(path, presentation.replace('.ppt', '.pdf'))
 
     converter.convert(os.path.join(path, presentation), pdfname)
