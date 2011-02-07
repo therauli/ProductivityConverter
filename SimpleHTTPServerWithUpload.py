@@ -7,11 +7,13 @@ and HEAD requests in a fairly straightforward manner.
 
 """
 
+# Based on:
+# __author__ = "bones7456"
+# __home_page__ = "http://li2z.cn/"
+# this version by therauli
 
-__version__ = "0.1"
 __all__ = ["SimpleHTTPRequestHandler"]
-__author__ = "bones7456"
-__home_page__ = "http://li2z.cn/"
+__version__ = "0.2"
 
 import os
 import posixpath
@@ -21,6 +23,7 @@ import cgi
 import shutil
 import mimetypes
 import re
+
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -29,20 +32,18 @@ except ImportError:
 import DocumentConverter
 import ooutils
 
-
-
 def convert(path, presentation):
+    print presentation, path
     print 'converting to pdf'
     converter = DocumentConverter.DocumentConverter()
-    pdfname = presentation.replace('.ppt', '.pdf')
+    pdfname = os.path.join(path, presentation.replace('.ppt', '.pdf'))
 
-    converter.convert(presentation, pdfname)
+    converter.convert(os.path.join(path, presentation), pdfname)
     print 'done'
     print 'converting to pngs'
-    pngname = os.path.join(path, presentation.replace('.pdf', 'png'))
+    pngname = pdfname.replace('.pdf', '.png')
     os.system('convert %s %s' % (pdfname, pngname))
                      
-
 def rm_rf(d):
     for path in (os.path.join(d,f) for f in os.listdir(d)):
         if os.path.isdir(path):
@@ -50,7 +51,6 @@ def rm_rf(d):
         else:
             os.unlink(path)
     os.rmdir(d)
-
 
 class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
@@ -119,39 +119,43 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         remainbytes = int(self.headers['content-length'])
         line = self.rfile.readline()
         remainbytes -= len(line)
+
         if not boundary in line:
             return (False, "Content NOT begin with boundary")
+
         line = self.rfile.readline()
         remainbytes -= len(line)
+
         fn = re.findall(r'Content-Disposition.*name="file"; filename="(.*)"', line)
         if not fn:
             return (False, "Can't find out file name...")
 
-        #create dir for presentation
-
         filename = fn[0]
         pathname, _ = filename.split('.ppt')
 
+        #remove old dir with content!
         if os.path.exists(pathname):
-            print 'there is one'
             rm_rf(pathname)
 
+        #create a new one
         os.mkdir(pathname)
-        convert(pathname, filename)
 
         path = self.translate_path(self.path)
-        fn = os.path.join(path, fn[0])
-        while os.path.exists(fn):
-            fn += "_"
+        fn = os.path.join(pathname, fn[0])
+
+
+        #read two lines (some header stuff perhaps?
         line = self.rfile.readline()
         remainbytes -= len(line)
         line = self.rfile.readline()
         remainbytes -= len(line)
+
+
         try:
             out = open(fn, 'wb')
         except IOError:
             return (False, "Can't create file to write, do you have permission to write?")
-                
+        
         preline = self.rfile.readline()
         remainbytes -= len(preline)
         while remainbytes > 0:
@@ -163,11 +167,20 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                     preline = preline[0:-1]
                 out.write(preline)
                 out.close()
-                return (True, "File '%s' upload success!" % fn)
+                success = True
             else:
                 out.write(preline)
                 preline = line
+                success = False
+
+        convert(pathname, filename)
+
+        if success:
+            return (True, "File '%s' upload success!" % fn)
+
         return (False, "Unexpect Ends of data.")
+
+
 
     def send_head(self):
         """Common code for GET and HEAD commands.

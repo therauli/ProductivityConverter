@@ -19,6 +19,8 @@ OPENOFFICE_PORT = 8100
 _oopaths=(
         ('/usr/lib64/ooo-2.0/program',   '/usr/lib64/ooo-2.0/program'),
         ('/opt/openoffice.org3/program', '/opt/openoffice.org/basis3.0/program'),
+        ('/usr/lib/openoffice/program', '/usr/lib/openoffice/program'),
+
      )
 
 for p in _oopaths:
@@ -99,17 +101,16 @@ class OORunner:
         Start a headless instance of OpenOffice.
         """
         args = [OPENOFFICE_BIN,
-                '--headless',
-                '--norestore',
-                '--nofirststartwizard',
-                '--nologo',
-                '--accept=socket,host=localhost,port=%d;urp;' % self.port,#StarOffice.ServiceManager' % self.port,
+                '-headless',
+                '-norestore',
+                '-nofirststartwizard',
+                '-nologo',
+                '-accept=socket,host=localhost,port=%d;urp;StarOffice.ServiceManager' % self.port,
                 ]
         env  = {'PATH'       : '/bin:/usr/bin:%s' % OPENOFFICE_PATH,
                 'PYTHONPATH' : OPENOFFICE_LIBPATH,
                 }
 
-        print 'Start'
         try:
             pid = os.spawnve(os.P_NOWAIT, args[0], args, env)
         except Exception, e:
@@ -170,3 +171,11 @@ def oo_properties(**args):
         props.append(prop)
 
     return tuple(props)
+
+if __name__ == '__main__':
+    runner = OORunner()
+    print 'starting'
+    runner.startup()
+    print 'stopping'
+    raw_input()
+    runner.shutdown()

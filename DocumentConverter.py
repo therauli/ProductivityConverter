@@ -224,8 +224,8 @@ if __name__ == "__main__":
 
     import ooutils
     runner = ooutils.OORunner()
-    runner.startup()
-        
+    runner.connect()
+
     try:
         converter = DocumentConverter()    
         converter.convert(argv[1], argv[2])
