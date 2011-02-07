@@ -19,8 +19,6 @@ OPENOFFICE_PORT = 8100
 _oopaths=(
         ('/usr/lib64/ooo-2.0/program',   '/usr/lib64/ooo-2.0/program'),
         ('/opt/openoffice.org3/program', '/opt/openoffice.org/basis3.0/program'),
-        # for windows, a bit hackish solution
-        ('C:\Program Files (x86)\OpenOffice.org 3\program', 'C:\Program Files (x86)\OpenOffice.org 3\Basis\program')
      )
 
 for p in _oopaths:
