@@ -32,17 +32,7 @@ except ImportError:
 import documentconverter
 import ooutils
 
-def convert(path, presentation):
-    print 'converting to pdf'
-    converter = documentconverter.DocumentConverter()
-    pdfname = os.path.join(path, presentation.replace('.ppt', '.pdf'))
-
-    converter.convert(os.path.join(path, presentation), pdfname)
-    print 'done'
-    print 'converting to pngs'
-    pngname = pdfname.replace('.pdf', '.png')
-    os.system('convert %s %s' % (pdfname, pngname))
-                     
+                    
 def rm_rf(d):
     for path in (os.path.join(d,f) for f in os.listdir(d)):
         if os.path.isdir(path):
@@ -68,7 +58,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         BaseHTTPServer.BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
         '''Start my engine'''
         self.runner = ooutils.OORunner()
-        self.runner.startup()
+        self.runner.connect()
     
     server_version = "SimpleHTTPWithUpload/" + __version__
 
@@ -109,6 +99,69 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if f:
             self.copyfile(f, self.wfile)
             f.close()
+
+    def write_file_content(self):
+        preline = self.rfile.readline()
+        remainbytes -= len(preline)
+        while remainbytes > 0:
+            line = self.rfile.readline()
+            remainbytes -= len(line)
+            if boundary in line:
+                preline = preline[0:-1]
+                if preline.endswith('\r'):
+                    preline = preline[0:-1]
+                out.write(preline)
+                out.close()
+                success = True
+            else:
+                out.write(preline)
+                preline = line
+                success = False
+
+    def do_PUT(self):
+        print 'PUT'
+        filename = self.path
+
+        length = int(self.headers['content-length'])
+
+        
+
+        content = "".join(self.rfile.read(length)
+
+        pathname, filename = self.handle_filename(self.path)
+
+        fn = self.create_dir(pathname, filename)
+
+        file = open(fn, 'wb').write(content)
+
+        self.convert(pathname, filename)
+
+        self.send_response(201)
+        self.send_header("Content-type", "Thank you!")
+        self.end_headers()
+
+    def create_dir(self, pathname, filename):
+        #remove old dir with content!
+        if os.path.exists(pathname):
+            rm_rf(pathname)
+
+        #create a new one
+        os.mkdir(pathname)
+
+        path = self.translate_path(self.path)
+        fn = os.path.join(pathname, filename)
+        return fn
+
+    def convert(self, path, presentation):
+        print 'converting to pdf'
+        converter = documentconverter.DocumentConverter()
+        pdfname = os.path.join(path, presentation.replace('.ppt', '.pdf'))
+
+        converter.convert(os.path.join(path, presentation), pdfname)
+        print 'done'
+        print 'converting to pngs'
+        pngname = pdfname.replace('.pdf', '.png')
+        os.system('convert %s %s' % (pdfname, pngname))
         
     def deal_post_data(self):
         boundary = self.headers.plisttext.split("=")[1]
@@ -126,26 +179,10 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if not fn:
             return (False, "Can't find out file name...")
 
-        filename = fn[0]
+        pathname, filename = self.handle_filename(fn[0])
 
-        # Just get rid of the x :P
-        if filename.endswith('.pptx'):
-            pathname, _ = filename.split('.pptx')
-            filename = filename.replace('.pptx', '.ppt')
-        else:
-            pathname, _ = filename.split('.ppt')
-
-        #remove old dir with content!
-        if os.path.exists(pathname):
-            rm_rf(pathname)
-
-        #create a new one
-        os.mkdir(pathname)
-
-        path = self.translate_path(self.path)
-        fn = os.path.join(pathname, filename)
-
-
+        fn = self.create_dir(pathname, filename)
+        
         #read two lines (some header stuff perhaps?
         line = self.rfile.readline()
         remainbytes -= len(line)
@@ -174,7 +211,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 preline = line
                 success = False
 
-        convert(pathname, filename)
+        self.convert(pathname, filename)
 
         if success:
             return (True, "File '%s' upload success!" % fn)
@@ -182,6 +219,14 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return (False, "Unexpect Ends of data.")
 
 
+    def handle_filename(self, filename):
+        # Just get rid of the x :P
+        if filename.endswith('.pptx'):
+            pathname, _ = filename.split('.pptx')
+            filename = filename.replace('.pptx', '.ppt')
+        else:
+            pathname, _ = filename.split('.ppt')
+        return pathname, filename
 
     def send_head(self):
         """Common code for GET and HEAD commands.
