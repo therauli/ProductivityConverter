@@ -20,13 +20,12 @@ _oopaths=(
         ('/usr/lib64/ooo-2.0/program',   '/usr/lib64/ooo-2.0/program'),
         ('/opt/openoffice.org3/program', '/opt/openoffice.org/basis3.0/program'),
         ('/usr/lib/openoffice/program', '/usr/lib/openoffice/program'),
-
      )
 
 for p in _oopaths:
     if os.path.exists(p[0]):
-        OPENOFFICE_PATH    = p[0]
-        OPENOFFICE_BIN     = os.path.join(OPENOFFICE_PATH, 'soffice')
+        OPENOFFICE_PATH = p[0]
+        OPENOFFICE_BIN = os.path.join(OPENOFFICE_PATH, 'soffice')
         OPENOFFICE_LIBPATH = p[1]
 
         # Add to path so we can find uno.
@@ -37,11 +36,9 @@ else:
     print "No ooffice found!"
     sys.exit(1)
 
-
 import uno
 from com.sun.star.beans import PropertyValue
 from com.sun.star.connection import NoConnectException
-
 
 class OORunner:
     """
@@ -51,16 +48,15 @@ class OORunner:
         """ Create OORunner that connects on the specified port. """
         self.port = port
 
-
     def connect(self, no_startup=False):
         """
         Connect to OpenOffice.
         If a connection cannot be established try to start OpenOffice.
         """
         localContext = uno.getComponentContext()
-        resolver     = localContext.ServiceManager.createInstanceWithContext("com.sun.star.bridge.UnoUrlResolver", localContext)
-        context      = None
-        did_start    = False
+        resolver = localContext.ServiceManager.createInstanceWithContext("com.sun.star.bridge.UnoUrlResolver", localContext)
+        context = None
+        did_start = False
 
         n = 0
         while n < 6:

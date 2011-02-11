@@ -58,7 +58,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         BaseHTTPServer.BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
         '''Start my engine'''
         self.runner = ooutils.OORunner()
-        self.runner.connect()
+        self.desktop = self.runner.connect()
     
     server_version = "SimpleHTTPWithUpload/" + __version__
 
@@ -100,40 +100,18 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.copyfile(f, self.wfile)
             f.close()
 
-    def write_file_content(self):
-        preline = self.rfile.readline()
-        remainbytes -= len(preline)
-        while remainbytes > 0:
-            line = self.rfile.readline()
-            remainbytes -= len(line)
-            if boundary in line:
-                preline = preline[0:-1]
-                if preline.endswith('\r'):
-                    preline = preline[0:-1]
-                out.write(preline)
-                out.close()
-                success = True
-            else:
-                out.write(preline)
-                preline = line
-                success = False
-
     def do_PUT(self):
-        print 'PUT'
         filename = self.path
 
         length = int(self.headers['content-length'])
 
+        content = self.rfile.read(length)
         
-
-        content = "".join(self.rfile.read(length)
-
         pathname, filename = self.handle_filename(self.path)
-
         fn = self.create_dir(pathname, filename)
 
         file = open(fn, 'wb').write(content)
-
+                          
         self.convert(pathname, filename)
 
         self.send_response(201)
@@ -156,11 +134,13 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         print 'converting to pdf'
         converter = documentconverter.DocumentConverter()
         pdfname = os.path.join(path, presentation.replace('.ppt', '.pdf'))
+        print pdfname
 
         converter.convert(os.path.join(path, presentation), pdfname)
         print 'done'
         print 'converting to pngs'
         pngname = pdfname.replace('.pdf', '.png')
+        print pngname
         os.system('convert %s %s' % (pdfname, pngname))
         
     def deal_post_data(self):
