@@ -54,14 +54,17 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     request omits the actual contents of the file.
 
     """
+    server_version = "SimpleHTTPWithUpload/" + __version__
+
     def __init__(self, *args, **kwargs):
         BaseHTTPServer.BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
+        self.startoo()
+
+    def startoo(self):
         '''Start my engine'''
         self.runner = ooutils.OORunner()
         self.desktop = self.runner.connect()
     
-    server_version = "SimpleHTTPWithUpload/" + __version__
-
     def do_GET(self):
         """Serve a GET request."""
         f = self.send_head()
@@ -101,6 +104,13 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             f.close()
 
     def do_PUT(self):
+        #The mother of all ugly hacks! Init is not run for some reason
+        #so let's start oo
+        try:
+            self.runner
+        except AttributeError:
+            self.startoo()
+
         filename = self.path
 
         length = int(self.headers['content-length'])
@@ -134,13 +144,11 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         print 'converting to pdf'
         converter = documentconverter.DocumentConverter()
         pdfname = os.path.join(path, presentation.replace('.ppt', '.pdf'))
-        print pdfname
 
         converter.convert(os.path.join(path, presentation), pdfname)
         print 'done'
         print 'converting to pngs'
         pngname = pdfname.replace('.pdf', '.png')
-        print pngname
         os.system('convert %s %s' % (pdfname, pngname))
         
     def deal_post_data(self):
@@ -200,12 +208,18 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
     def handle_filename(self, filename):
+
+        if filename.startswith('/'):
+            filename = filename.lstrip('/')
+
         # Just get rid of the x :P
         if filename.endswith('.pptx'):
             pathname, _ = filename.split('.pptx')
             filename = filename.replace('.pptx', '.ppt')
         else:
             pathname, _ = filename.split('.ppt')
+            pathname = pathname.strip()
+
         return pathname, filename
 
     def send_head(self):
@@ -370,8 +384,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         })
 
 
-def test(HandlerClass = SimpleHTTPRequestHandler,
-         ServerClass = BaseHTTPServer.HTTPServer):
+def test(HandlerClass=SimpleHTTPRequestHandler, ServerClass=BaseHTTPServer.HTTPServer):
     BaseHTTPServer.test(HandlerClass, ServerClass)
 
 if __name__ == '__main__':
