@@ -31,7 +31,6 @@ except ImportError:
 
 import documentconverter
 import ooutils
-
                     
 def rm_rf(d):
     for path in (os.path.join(d,f) for f in os.listdir(d)):
@@ -43,7 +42,7 @@ def rm_rf(d):
 
 class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
-    """Simple HTTP request handler with GET/HEAD/POST commands.
+    """Simple HTTP request handler with GET/HEAD/POST/PUT commands.
 
     This serves files from the current directory and any of its
     subdirectories.  The MIME type for files is determined by
@@ -111,21 +110,23 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         except AttributeError:
             self.startoo()
 
-        filename = self.path
-
+        #just get the filename
+        filename = self.path.split('/')[-1]
+ 
         length = int(self.headers['content-length'])
 
         content = self.rfile.read(length)
         
-        pathname, filename = self.handle_filename(self.path)
+        pathname, filename = self.handle_filename(filename)
         fn = self.create_dir(pathname, filename)
 
         file = open(fn, 'wb').write(content)
                           
         self.convert(pathname, filename)
-
-        self.send_response(201)
-        self.send_header("Content-type", "Thank you!")
+        
+        self.send_response(201, "Thank you, come again!")
+        self.send_header("Content-Type", "text/plain")
+        self.send_header("Content-Length", "0")
         self.end_headers()
 
     def create_dir(self, pathname, filename):
