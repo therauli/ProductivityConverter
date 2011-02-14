@@ -23,6 +23,7 @@ import cgi
 import shutil
 import mimetypes
 import re
+import glob
 
 try:
     from cStringIO import StringIO
@@ -151,6 +152,15 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         print 'converting to pngs'
         pngname = pdfname.replace('.pdf', '.png')
         os.system('convert %s %s' % (pdfname, pngname))
+        
+        index = 0
+        for file in glob.glob(path + "/*.png"):
+            i = int(re.match(".*-(\d+)\.png", file).group(1))
+            if i >= index:
+                index = i
+        print index
+        open(os.path.join(path, "index.txt"), 'w').write(str(index) + '\n')
+
         
     def deal_post_data(self):
         boundary = self.headers.plisttext.split("=")[1]
