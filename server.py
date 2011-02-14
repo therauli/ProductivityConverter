@@ -159,7 +159,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if i >= index:
                 index = i
         print index
-        open(os.path.join(path, "index.txt"), 'w').write(str(index) + '\n')
+        open(os.path.join(path, "index.txt"), 'w').write(str(index))
 
         
     def deal_post_data(self):
