@@ -96,12 +96,14 @@ class OORunner:
         """
         Start a headless instance of OpenOffice.
         """
-        args = [OPENOFFICE_BIN,
+        args = ['/usr/bin/xvfb-run',
+                '-a',
+                OPENOFFICE_BIN,
+                '-accept=socket,host=localhost,port=%d;urp;StarOffice.ServiceManager' % self.port,
                 '-headless',
                 '-norestore',
                 '-nofirststartwizard',
                 '-nologo',
-                '-accept=socket,host=localhost,port=%d;urp;StarOffice.ServiceManager' % self.port,
                 ]
         env  = {'PATH'       : '/bin:/usr/bin:%s' % OPENOFFICE_PATH,
                 'PYTHONPATH' : OPENOFFICE_LIBPATH,
